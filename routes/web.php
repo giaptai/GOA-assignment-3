@@ -12,7 +12,7 @@ Route::get('/dashboard', [StudentController::class, 'chart'])->name('dashboard')
 Route::get('/scores', function () {
     return view('scores');
 })->name('scores');
-Route::get('/score', [StudentController::class, 'show'])->name('score.check');
+Route::get('/score', [StudentController::class, 'show'])->name('score.show');
 
 /*
 * route reports

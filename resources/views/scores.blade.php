@@ -40,7 +40,7 @@
                                             Ngoại ngữ</th>
                                         <th scope="col"
                                             class="px-6 py-3 text-start text-xs md:whitespace-nowrap font-medium text-gray-500 uppercase">
-                                            Vật lý</th>
+                                            Vật lí</th>
                                         <th scope="col"
                                             class="px-6 py-3 text-start text-xs md:whitespace-nowrap font-medium text-gray-500 uppercase">
                                             Hóa học</th>
@@ -105,13 +105,13 @@
         </div>
     </div>
     <script>
-        const scoreUrl = @json(route('score.check'));
+        const scoreUrl = @json(route('score.show'));
         const submitBtn = document.getElementById('submitBtn');
         const sbdInput = document.getElementById('sbd');
 
         sbdInput.addEventListener('keydown', function(event) {
             if (event.key === 'Enter') {
-                event.preventDefault(); // Ngăn submit form mặc định (nếu có)
+                event.preventDefault();
                 getInfo();
             }
         });
@@ -130,6 +130,9 @@
                 if (!res.ok) {
                     console.log(data);
                     message.innerHTML = data.message;
+                     resultTbody.innerHTML =`<tr>
+                        <td colspan="12" class="text-center py-2 italic text-gray-500">No data</td>
+                    </tr>`
                 } else {
                     message.innerHTML = '';
                     resultTbody.innerHTML =

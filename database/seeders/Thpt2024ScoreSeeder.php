@@ -18,9 +18,9 @@ class Thpt2024ScoreSeeder extends Seeder
         $header = fgetcsv($csv);
 
         DB::disableQueryLog(); //Tắt query log
-        $batchSize = 1000;
+        $batchSize = 1500;
         $processed = 0;
-        $total = 10_000;
+        $total = 1_500_000;
         DB::transaction(function () use ($csv, $header, $batchSize, $processed, $total) {
             $insertData = [];
 

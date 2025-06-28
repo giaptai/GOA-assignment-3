@@ -2,7 +2,5 @@
 @extends('layouts.main')
 
 @section('main-content')
-    <div>
-        settings
-    </div>
+    @include('components.comingsoon')
 @endsection

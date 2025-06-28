@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\RegisterNumberRequest;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Request;
 use App\Models\Student;
 use IcehouseVentures\LaravelChartjs\Builder;
@@ -24,12 +24,10 @@ class StudentController extends Controller
         'rgba(255, 159, 64, 0.3)',
         'rgba(0, 200, 83, 0.3)',
     ];
-    //
+
+
     public function show(Request $req): JsonResponse
     {
-        // $this->_dataRender();
-        // DB::table('exam_scores')->delete(); # xóa hết data bên render
-        // $req->input('q');
         $sbd = $req->query('q');
 
         if (empty($sbd) || strlen($sbd) < 8 || strlen($sbd) > 8) {
@@ -42,6 +40,54 @@ class StudentController extends Controller
             return response()->json(['message' => 'Không tìm thấy thí sinh'], 404);
         }
         return response()->json($student);
+    }
+
+
+    public function Top10A()
+    {
+        $sub = DB::table('exam_scores')
+            ->selectRaw('
+        *, (toan + vat_li + hoa_hoc) as tong,
+        DENSE_RANK() OVER (
+            ORDER BY (
+                COALESCE(toan, 0) + COALESCE(vat_li, 0) + COALESCE(hoa_hoc, 0)
+            ) DESC
+        ) AS rank
+    ');
+        $top10 = DB::query()
+            ->fromSub($sub, 'ranked')
+            ->where('rank', '<=', 10)
+            ->get();
+
+        // $top10 = Student::orderByRaw('(COALESCE(toan,0) + COALESCE(vat_li,0) + COALESCE(hoa_hoc,0)) DESC')
+        //     ->limit(10)->get();
+        return view('reports', compact('top10'));
+    }
+
+
+    public function chart()
+    {
+        $dashboardData = Cache::rememberForever('dashboard_static_data', function () {
+            $total = Student::count();
+            $diemTb = $this->_diemTrungBinh();
+            $tongBThi = $this->_tongBaiThi();
+            $failed = $this->_soHocSinhRot();
+            $chart = $this->_chartScore(); // Hàm này sẽ gọi _scores()
+            return [
+                'total' => $total,
+                'diemTb' => $diemTb,
+                'tongBThi' => $tongBThi,
+                'failed' => $failed,
+                'chart' => $chart,
+            ];
+        });
+        return view('dashboard', [
+            'chart' => $dashboardData['chart'],
+            'total' => $dashboardData['total'],
+            'diemTb' => $dashboardData['diemTb'],
+            'failed' => $dashboardData['failed'],
+            'tongBThi' => $dashboardData['tongBThi'],
+        ]);
     }
 
     private function _scores(): array
@@ -92,63 +138,53 @@ class StudentController extends Controller
             ->name('lineChart')
             ->type('line')
             ->size(['width' => 200, 'height' => 100])
-            ->labels(['< 4 points', '6 points > && >= 4 points', '8 points > && >=6 points', '>=8 points'])
+            ->labels(['< 4 points', '6 points > & >= 4 points', '8 points > & >=6 points', '>=8 points'])
             ->datasets($datasets)->options([]);
         return $chartData;
     }
 
-    public function chart()
+    private function _diemTrungBinh()
     {
-        $chart = $this->_chartScore();
-        return view('dashboard', compact('chart'));
+        $diemTb = DB::table('exam_scores')
+            ->selectRaw('
+        SUM(
+            COALESCE(toan, 0) + COALESCE(ngu_van, 0) + COALESCE(ngoai_ngu, 0) +
+            COALESCE(vat_li, 0) + COALESCE(hoa_hoc, 0) + COALESCE(sinh_hoc, 0) +
+            COALESCE(lich_su, 0) + COALESCE(dia_li, 0) + COALESCE(gdcd, 0)
+        )::numeric
+        /
+        (
+            COUNT(toan) + COUNT(ngu_van) + COUNT(ngoai_ngu) +
+            COUNT(vat_li) + COUNT(hoa_hoc) + COUNT(sinh_hoc) +
+            COUNT(lich_su) + COUNT(dia_li) + COUNT(gdcd)
+        ) AS total_score')
+            ->first()->total_score;
+        return $diemTb;
     }
 
-    public function Top10A()
+    private function _soHocSinhRot()
     {
-        $top10 = Student::orderByRaw('(COALESCE(toan,0) + COALESCE(vat_li,0) + COALESCE(hoa_hoc,0)) DESC')
-            ->limit(10)->get();
-        return view('reports', compact('top10'));
+        $failed = DB::table('exam_scores')
+            ->whereRaw('coalesce(toan, 5) <= 1')
+            ->orWhereRaw('coalesce(ngu_van, 5) <= 1')
+            ->orWhereRaw('coalesce(ngoai_ngu, 5) <= 1')
+            ->orWhereRaw('coalesce(vat_li, 5) <= 1')
+            ->orWhereRaw('coalesce(hoa_hoc, 5) <= 1')
+            ->orWhereRaw('coalesce(sinh_hoc, 5) <= 1')
+            ->orWhereRaw('coalesce(lich_su, 5) <= 1')
+            ->orWhereRaw('coalesce(dia_li, 5) <= 1')
+            ->orWhereRaw('coalesce(gdcd, 5) <= 1')
+            ->count();
+        return $failed;
     }
-
-    private function _dataRender()
+    private function _tongBaiThi(): int
     {
-        set_time_limit(18000);
-        $csv = fopen(public_path('diem_thi_thpt_2024.csv'), 'r');
-        $header = fgetcsv($csv);
-
-        DB::disableQueryLog(); //Tắt query log
-        $batchSize = 100;
-        $processed = 0;
-        $total = 1_200_000;
-        DB::transaction(function () use ($csv, $header, $batchSize, $processed, $total) {
-            $insertData = [];
-
-            while (($row = fgetcsv($csv)) && $processed < $total) {
-                $data = array_combine($header, $row);
-                $processed++;
-                $insertData[] = [
-                    'sbd' => $data['sbd'],
-                    'toan' => is_numeric($data['toan']) ? $data['toan'] : null,
-                    'ngu_van' => is_numeric($data['ngu_van']) ? $data['ngu_van'] : null,
-                    'ngoai_ngu' => is_numeric($data['ngoai_ngu']) ? $data['ngoai_ngu'] : null,
-                    'vat_li' => is_numeric($data['vat_li']) ? $data['vat_li'] : null,
-                    'hoa_hoc' => is_numeric($data['hoa_hoc']) ? $data['hoa_hoc'] : null,
-                    'sinh_hoc' => is_numeric($data['sinh_hoc']) ? $data['sinh_hoc'] : null,
-                    'lich_su' => is_numeric($data['lich_su']) ? $data['lich_su'] : null,
-                    'dia_li' => is_numeric($data['dia_li']) ? $data['dia_li'] : null,
-                    'gdcd' => is_numeric($data['gdcd']) ? $data['gdcd'] : null,
-                    'ma_ngoai_ngu' => $data['ma_ngoai_ngu'] ?: null,
-                ];
-
-                if (count($insertData) === $batchSize) {
-                    DB::table('exam_scores')->insert($insertData); // insert 1000 bản ghi/lần
-                    $insertData = [];
-                }
-            }
-            // 
-            if (!empty($insertData)) {
-                DB::table('exam_scores')->insert($insertData);
-            }
-        });
+        $result = DB::table('exam_scores')
+            ->selectRaw('
+            (COUNT(toan) + COUNT(ngu_van) + COUNT(ngoai_ngu) +
+            COUNT(vat_li) + COUNT(hoa_hoc) + COUNT(sinh_hoc) +
+            COUNT(lich_su) + COUNT(dia_li) + COUNT(gdcd)) AS tong_bai_thi')
+            ->first();
+        return $result->tong_bai_thi ?? 0;
     }
 }

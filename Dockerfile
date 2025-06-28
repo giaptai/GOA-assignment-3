@@ -35,39 +35,10 @@
 
 
 
-# FROM richarvey/nginx-php-fpm:3.1.6
-
-# RUN apk add --no-cache gettext
-
-# COPY . .
-# COPY .env.render .env
-
-# # Image config
-# ENV SKIP_COMPOSER=1
-# ENV WEBROOT=/var/www/html/public
-# ENV PHP_ERRORS_STDERR=1
-# ENV RUN_SCRIPTS=1
-# ENV REAL_IP_HEADER=1
-
-# # Laravel config
-# ENV APP_ENV=production
-# ENV APP_DEBUG=false
-# ENV LOG_CHANNEL=stderr
-
-# # Allow composer to run as root
-# ENV COMPOSER_ALLOW_SUPERUSER=1
-# # COPY nginx/default.conf /etc/nginx/sites-available/default
-# COPY nginx/default.conf.template /etc/nginx/sites-available/default.conf.template
-# RUN ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
-# COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-# RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-# ENTRYPOINT ["docker-entrypoint.sh"]
-# CMD ["/start.sh"]
-
-
 FROM richarvey/nginx-php-fpm:3.1.6
-
+RUN apk add --no-cache gettext
 COPY . .
+COPY .env.render .env
 
 # Image config
 ENV SKIP_COMPOSER=1
@@ -83,8 +54,35 @@ ENV LOG_CHANNEL=stderr
 
 # Allow composer to run as root
 ENV COMPOSER_ALLOW_SUPERUSER=1
+# COPY nginx/default.conf /etc/nginx/sites-available/default
+COPY nginx/default.conf.template /etc/nginx/sites-available/default.conf.template
+RUN ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+ENTRYPOINT ["docker-entrypoint.sh"]
+# CMD ["/start.sh"]
 
-CMD ["/start.sh"]
+
+# FROM richarvey/nginx-php-fpm:3.1.6
+
+# COPY . .
+
+# # Image config
+# ENV SKIP_COMPOSER=1
+# ENV WEBROOT=/var/www/html/public
+# ENV PHP_ERRORS_STDERR=1
+# ENV RUN_SCRIPTS=1
+# ENV REAL_IP_HEADER=1
+
+# # Laravel config
+# ENV APP_ENV=production
+# ENV APP_DEBUG=false
+# ENV LOG_CHANNEL=stderr
+
+# # Allow composer to run as root
+# ENV COMPOSER_ALLOW_SUPERUSER=1
+
+# CMD ["/start.sh"]
 
 
 
