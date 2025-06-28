@@ -9,20 +9,21 @@ use IcehouseVentures\LaravelChartjs\Builder;
 use Illuminate\Http\JsonResponse;
 use IcehouseVentures\LaravelChartjs\Facades\Chartjs;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Contracts\View\View;
 
 class StudentController extends Controller
 {
     private array $subjects = ['toan', 'ngu_van',  'ngoai_ngu', 'vat_li', 'hoa_hoc', 'sinh_hoc', 'lich_su', 'dia_li', 'gdcd'];
     private array $colors = [
-        'rgba(38, 185, 154, 0.31)',
-        'rgba(3, 88, 106, 0.3)',
-        'rgba(255, 99, 132, 0.3)',
-        'rgba(54, 162, 235, 0.3)',
-        'rgba(255, 206, 86, 0.3)',
-        'rgba(75, 192, 192, 0.3)',
-        'rgba(153, 102, 255, 0.3)',
-        'rgba(255, 159, 64, 0.3)',
-        'rgba(0, 200, 83, 0.3)',
+        'rgba(38, 185, 154, 0.7)',
+        'rgba(3, 88, 106, 0.7)',
+        'rgba(255, 99, 132, 0.7)',
+        'rgba(54, 162, 235, 0.7)',
+        'rgba(255, 206, 86, 0.7)',
+        'rgba(75, 192, 192, 0.7)',
+        'rgba(153, 102, 255, 0.7)',
+        'rgba(255, 159, 64, 0.7)',
+        'rgba(0, 200, 83, 0.7)',
     ];
 
 
@@ -43,46 +44,52 @@ class StudentController extends Controller
     }
 
 
-    public function Top10A()
+    public function Top10A(): View
     {
-        $sub = DB::table('exam_scores')
-            ->selectRaw('
+        $top10 = Cache::rememberForever('top10A_static_data', function () {
+            $sub = DB::table('exam_scores')
+                ->selectRaw('
         *, (toan + vat_li + hoa_hoc) as tong,
         DENSE_RANK() OVER (
             ORDER BY (
                 COALESCE(toan, 0) + COALESCE(vat_li, 0) + COALESCE(hoa_hoc, 0)
             ) DESC
-        ) AS rank
-    ');
-        $top10 = DB::query()
-            ->fromSub($sub, 'ranked')
-            ->where('rank', '<=', 10)
-            ->get();
-
-        // $top10 = Student::orderByRaw('(COALESCE(toan,0) + COALESCE(vat_li,0) + COALESCE(hoa_hoc,0)) DESC')
-        //     ->limit(10)->get();
-        return view('reports', compact('top10'));
+        ) AS rank');
+            return DB::query()
+                ->fromSub($sub, 'ranked')
+                ->where('rank', '<=', 10)
+                ->get();
+        });
+        return view('pages.reports', compact('top10'));
     }
 
 
-    public function chart()
+    public function chart(): View
     {
         $dashboardData = Cache::rememberForever('dashboard_static_data', function () {
             $total = Student::count();
             $diemTb = $this->_diemTrungBinh();
             $tongBThi = $this->_tongBaiThi();
-            $failed = $this->_soHocSinhRot();
-            $chart = $this->_chartScore(); // Hàm này sẽ gọi _scores()
+            $failed = $this->_diemLiet();
+
+            //
+            $dataChart = $this->_scores();
+            $chart = $this->_chartScore('line', $dataChart);
+            $chartBar = $this->_chartScore('bar', $dataChart);
+            // $chartDoughnut = $this->_chartScore('doughnut');polarArea
+            // $chartPolarArea = $this->_chartScore('polarArea');
             return [
                 'total' => $total,
                 'diemTb' => $diemTb,
                 'tongBThi' => $tongBThi,
                 'failed' => $failed,
                 'chart' => $chart,
+                'chartBar' => $chartBar,
             ];
         });
-        return view('dashboard', [
+        return view('pages.dashboard', [
             'chart' => $dashboardData['chart'],
+            'chartBar' => $dashboardData['chartBar'],
             'total' => $dashboardData['total'],
             'diemTb' => $dashboardData['diemTb'],
             'failed' => $dashboardData['failed'],
@@ -100,15 +107,14 @@ class StudentController extends Controller
             $result[] = "COUNT(CASE WHEN {$subject} < 4 THEN 1 END) AS {$subject}_lt_4";
         }
         $query = DB::table('exam_scores')->selectRaw(implode(",\n", $result))->first();
-        return (array)  $query;
+        return (array) $query;
     }
 
-    private function _chartScore(): Builder
+    private function _chartScore(string $str, array $data): Builder
     {
-        $data = $this->_scores();
-
+        // $data = $this->_scores();
         $borderColors = array_map(function ($color) {
-            return str_replace('0.3', '1', $color);
+            return str_replace('0.7', '1', $color);
         }, $this->colors);
 
         $i = 0;
@@ -135,15 +141,26 @@ class StudentController extends Controller
         }
 
         $chartData = Chartjs::build()
-            ->name('lineChart')
-            ->type('line')
+            ->name($str . 'Chart') #giúp tách từng biểu đồ
+            ->type($str)
             ->size(['width' => 200, 'height' => 100])
             ->labels(['< 4 points', '6 points > & >= 4 points', '8 points > & >=6 points', '>=8 points'])
-            ->datasets($datasets)->options([]);
+            ->datasets($datasets)
+            ->options([
+                'plugins' => [
+                    'title' => [
+                        'display' => true,
+                        'text' => 'Chart Title',
+                        'font' => [
+                            'size' => 30
+                        ]
+                    ]
+                ]
+            ]);
         return $chartData;
     }
 
-    private function _diemTrungBinh()
+    private function _diemTrungBinh(): float
     {
         $diemTb = DB::table('exam_scores')
             ->selectRaw('
@@ -162,7 +179,7 @@ class StudentController extends Controller
         return $diemTb;
     }
 
-    private function _soHocSinhRot()
+    private function _diemLiet(): int
     {
         $failed = DB::table('exam_scores')
             ->whereRaw('coalesce(toan, 5) <= 1')
