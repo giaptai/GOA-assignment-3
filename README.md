@@ -18,7 +18,12 @@
 - Thống kê tổng số thí sinh tham gia, điểm trung bình, tổng bài thi, điểm liệt.
 
 ## Chạy chương trình
-> Sau đây là 2 cách chạy ứng dụng: máy cá nhân, hoặc trên web site.
+> Sau đây là 2 cách chạy ứng dụng: máy cá nhân, hoặc trên web site.<br>
+```
+php artisan key: generate
+php artisan key generate:show # lấy khóa
+gán vào biến APP_KEY của .env
+```
 ### Chạy ở máy cá nhân
 > Sử dụng [docker-compose](/docker-compose.yaml): gồm image của postgreSQL, với [Dockerfile](/Dockerfile) và [docker-entrypoint.sh](/docker-entrypoint.sh)
   ```
