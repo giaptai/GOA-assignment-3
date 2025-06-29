@@ -141,6 +141,13 @@ volumes:
   - [00-laravel-deploy.sh](/scripts/00-laravel-deploy.sh): em chưa tìm hiểu sâu phần này nhưng khi cài nginx của richarvey/nginx-php-fpm thì sẽ khởi chạy file này chứ không phải start.sh
   - [nginx-site.conf](/conf/nginx/nginx-site.conf): cấu hình server nginx.
 - Ghi chú:
+  - 
+  ```
+    Nhớ `npm install && npm run build` không thì mất css trên Render.
+    docker build -t username\name-image:tag .
+    docker push username\name-image:tag
+   ```
+  
   - Kết nối với postgreSQL của Render cần lấy thông tin `Internal Database URL/Extenral Database URL` và bỏ vào trong biến `DATABASE_URL`
   - Trong [AppServiceProvider](/app/Providers/AppServiceProvider.php)
   - ```
