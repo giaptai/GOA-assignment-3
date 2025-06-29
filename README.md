@@ -3,6 +3,7 @@
 - Laravel phiên bản 12.19.3.
 - Sử dụng Blade Template kết hợp TailwindCSS, JavaScript cho giao diện
 - CSDL: PostgreSQL.
+
 ## Xem trước
 - Chạy trên máy tính cá nhân với docker-compose, seed 10.000 bản ghi<br>
   🎥 Xem demo triển khai trên Render tại: [YouTube](https://youtu.be/cq417BnOfpI)
@@ -177,3 +178,4 @@ volumes:
   ![](/public/render-media/render-env.png)
 
 
+> Em không chuyên về PHP hoặc Laravel, và chỉ mới tiếp cận trong khoảng 3 ngày gần đây. Toàn bộ nội dung trong dự án này là những gì em tự tìm hiểu và thực hiện, bao gồm việc chạy ứng dụng bằng docker-compose trên máy cá nhân và triển khai thành công trên nền tảng Render. > Mong anh/chị thông cảm nếu còn thiếu sót trong phần cấu hình hoặc hướng dẫn.
