@@ -3,7 +3,7 @@
 - Laravel phiên bản 12.19.3.
 - Sử dụng Blade Template kết hợp TailwindCSS, JavaScript cho giao diện
 - CSDL: PostgreSQL.
-
+- Thư viện laravel - chartjs để làm biểu đồ [link](https://icehouse-ventures.github.io/laravel-chartjs/)
 ## Xem trước
 - Chạy trên máy tính cá nhân với docker-compose, seed 10.000 bản ghi<br>
   🎥 Xem demo triển khai trên Máy cá nhân tại: [YouTube](https://youtu.be/cq417BnOfpI)
