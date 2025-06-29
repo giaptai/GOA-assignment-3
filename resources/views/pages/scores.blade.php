@@ -10,7 +10,7 @@
             <div class="flex flex-col sm:flex-row gap-y-1.5 sm:gap-x-1.5 ">
                 <input class="px-3 py-1.5 border-2 rounded-md border-gray-300 w-12/12 sm:w-3/12" type="text" value=""
                     id="sbd" name="sbd" placeholder="Enter registration number">
-                <button id="submitBtn" class="px-5 py-1.5 bg-[#0f2289] rounded-md text-white" type="button"
+                <button id="submitBtn" class="px-5 py-1.5 bg-[#0f2289] rounded-md text-white cursor-pointer" type="button"
                     onclick="">Submit</button>
             </div>
         </div>

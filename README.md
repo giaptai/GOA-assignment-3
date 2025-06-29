@@ -6,7 +6,7 @@
 
 ## Xem trước
 - Chạy trên máy tính cá nhân với docker-compose, seed 10.000 bản ghi<br>
-  🎥 Xem demo triển khai trên Render tại: [YouTube](https://youtu.be/cq417BnOfpI)
+  🎥 Xem demo triển khai trên Máy cá nhân tại: [YouTube](https://youtu.be/cq417BnOfpI)
 - Chạy trên Render<br>
   🎥 Xem demo triển khai trên Render tại: [YouTube](https://youtu.be/CE0hund49ok)
 ## Chức năng
