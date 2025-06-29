@@ -1,0 +1,33 @@
+# version: '3.8'
+
+services:
+  app:
+    build:
+      context: . # Đường dẫn tới Dockerfile (nằm trong thư mục hiện tại)
+      dockerfile: Dockerfile
+    ports:
+      - "8181:8181"
+    volumes:
+      - .:/var/www/html
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: blogy
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+    depends_on:
+      - db # Đảm bảo dịch vụ `db` khởi động trước `app`
+  db:
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_DB: blogy
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+
+volumes:
+  db_data:

@@ -26,6 +26,9 @@ class StudentController extends Controller
         'rgba(0, 200, 83, 0.7)',
     ];
 
+    public function index(): View {
+        return view('pages.scores');
+    }
 
     public function show(Request $req): JsonResponse
     {

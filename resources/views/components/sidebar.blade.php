@@ -11,7 +11,7 @@
                             </a>
                         </li>
                         <li>
-                            <a href="{{ route('scores') }}"
+                            <a href="{{ route('scores.index') }}"
                                 class="block p-3 border-r-8 {{ request()->segment(1) == 'scores' ? 'bg-[#0f2289] text-blue-50' : '' }} border-[#0f2289] text-[#0f2289] hover:bg-[#0f2289] hover:text-blue-50">
                                 <span>Search Scores</span>
                             </a>

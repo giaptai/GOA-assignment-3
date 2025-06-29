@@ -19,3 +19,6 @@ php artisan vendor:publish --provider="CloudinaryLabs\CloudinaryLaravel\Cloudina
 
 echo "Running migrations..."
 php artisan migrate --force
+
+echo "Running seeder..."
+php artisan db:seed --class=Thpt2024ScoreSeeder --force

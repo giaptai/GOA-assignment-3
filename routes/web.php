@@ -12,8 +12,13 @@ Route::get('/dashboard', [StudentController::class, 'chart'])->name('dashboard')
 /**********************
 * route scores
 */
-Route::get('/scores', function () {return view('pages.scores');})->name('scores');
-Route::get('/score', [StudentController::class, 'show'])->name('score.show');
+// Route::get('/scores', function () {return view('pages.scores');})->name('scores');
+// Route::get('/score', [StudentController::class, 'show'])->name('score.show');
+
+Route::prefix('/scores')->controller(StudentController::class)->name('scores.')->group(function(){
+    Route::get('/', 'index')->name('index');
+    Route::get('/score', 'show')->name('show');
+});
 
 /**********************
 * route reports

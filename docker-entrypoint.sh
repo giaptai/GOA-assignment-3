@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if [ -f ".env" ]; then
-  echo "📦 Loading environment from .env..."
+  echo "Loading environment from .env..."
   export $(grep -v '^#' .env | xargs)
 fi
 
@@ -15,17 +15,20 @@ while ! nc -z "$DB_HOST" "$DB_PORT"; do # cho deploy RENDER
 done
 echo "PostgreSQL started"
 
+echo "Delete cache..."
+php artisan cache:clear
+
 # `--force` để bỏ qua xác nhận trong môi trường production.
 echo "Running migrations..."
-# php artisan migrate --force
+php artisan migrate --force
 
 # `--force` để bỏ qua xác nhận trong môi trường production.
 echo "Running specific seeder (Thpt2024ScoreSeeder)..."
-# php artisan db:seed --class=Thpt2024ScoreSeeder --force
+php artisan db:seed --class=Thpt2024ScoreSeeder --force
 
-echo "🌐 Generating Nginx config from template using PORT=$PORT..."
-envsubst '${PORT}' < /etc/nginx/sites-available/default.conf.template > /etc/nginx/sites-available/default
-ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+# echo "Generating Nginx config from template using PORT=$PORT..."
+# envsubst '${PORT}' < /etc/nginx/sites-available/default.conf.template > /etc/nginx/sites-available/default
+# ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 
-echo "Starting application... with nginx + php-fpm"
-# exec /start.sh
+echo "Starting application... with php-fpm"
+php artisan serve --host=0.0.0.0 --port=8181

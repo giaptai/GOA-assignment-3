@@ -105,7 +105,7 @@
         </div>
     </div>
     <script>
-        const scoreUrl = @json(route('score.show'));
+        const scoreUrl = @json(route('scores.show'));
         const submitBtn = document.getElementById('submitBtn');
         const sbdInput = document.getElementById('sbd');
 
